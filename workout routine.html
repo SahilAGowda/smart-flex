@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Workout Routine</title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+   body {
+    font-family: 'Poppins', sans-serif;
+   }
+   .workout-header {
+    background: linear-gradient(135deg, #32fffc, #0bccf3);
+   }
+   .card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+   }
+   .badge {
+    background: linear-gradient(to right, #4f46e5, #2563eb);
+   }
+   .previous-card {
+    background: linear-gradient(to bottom right, #eff6ff, #dbeafe);
+   }
+   .suggestion-card {
+    background: linear-gradient(to bottom right, #f5f3ff, #ddd6fe);
+   }
+   @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+   }
+   .pulse-animation {
+    animation: pulse 2s infinite;
+   }
+   .chat-bubble {
+    position: relative;
+    background: #ffffff;
+    border-radius: 15px;
+    padding: 10px 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    max-width: 80%;
+    margin-bottom: 10px;
+   }
+   .chat-bubble:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 10px;
+    width: 0;
+    height: 0;
+    border: 10px solid transparent;
+    border-top-color: #ffffff;
+    border-bottom: 0;
+    margin-bottom: -10px;
+   }
+   .bot-avatar {
+    position: relative;
+   }
+   .status-dot {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #10b981;
+    border: 2px solid white;
+   }
+  </style>
+ </head>
+ <body class="bg-gray-50">
+  <div class="flex flex-col items-center min-h-screen">
+   <!-- Top gradient bar -->
+   <div class="w-full workout-header h-2"></div>
+   
+   <!-- Navigation bar -->
+   <div class="flex justify-between items-center w-full px-6 py-3 bg-white shadow-sm">
+    <div class="flex items-center">
+     <div class="relative">
+      <img alt="Gym logo" class="w-12 h-12 rounded-full shadow-md border-2 border-indigo-100" src="/api/placeholder/48/48"/>
+      <div class="absolute top-0 right-0 bg-indigo-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+       3
+      </div>
+     </div>
+     <div class="ml-4">
+      <h1 class="text-xl font-bold text-gray-800 hidden md:block">FitTrack</h1>
+      <p class="text-xs text-gray-500 hidden md:block">Personal Training Assistant</p>
+     </div>
+    </div>
+    <div class="flex items-center space-x-4">
+     <button class="text-gray-600 hover:text-indigo-500 transition p-2">
+      <i class="fas fa-search"></i>
+     </button>
+     <button class="relative text-gray-600 hover:text-indigo-500 transition p-2">
+      <i class="fas fa-bell"></i>
+      <span class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+       2
+      </span>
+     </button>
+     <button class="text-gray-600 hover:text-indigo-500 transition p-2">
+      <i class="fas fa-cog"></i>
+     </button>
+    </div>
+   </div>
+   
+   <!-- Title section -->
+   <div class="w-full text-center py-6 mt-2">
+    <h1 class="badge text-white text-lg font-bold py-2.5 px-8 rounded-full inline-block shadow-md transform hover:scale-105 transition-transform">
+     YOUR WORKOUT ROUTINE
+    </h1>
+   </div>
+   
+   <!-- Main content -->
+   <div class="flex flex-col md:flex-row w-full px-6 gap-6 max-w-7xl mx-auto mb-8">
+    <!-- Previous workout card -->
+    <div class="previous-card rounded-2xl p-6 flex-1 mb-6 md:mb-0 shadow-lg card-hover">
+     <h2 class="bg-blue-500 text-white text-lg font-bold py-2 px-6 rounded-full inline-block mb-6 shadow-md">
+      Previous Workout
+     </h2>
+     
+     <div class="space-y-4">
+      <div class="flex items-center p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition">
+       <img alt="Smith Incline Press" class="w-16 h-16 rounded-full mr-4 border-2 border-blue-100" src="assests/incline_press.jpg"/>
+       <div>
+        <p class="font-bold text-gray-800">SMITH INCLINE PRESS</p>
+        <p class="text-gray-600">15 x 4 SETS</p>
+        <div class="mt-1 flex items-center">
+         <i class="fas fa-fire text-blue-500 mr-1"></i>
+         <span class="text-xs text-gray-500">180 calories</span>
+        </div>
+       </div>
+      </div>
+      
+      <div class="flex items-center p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition">
+       <img alt="Bar Dips" class="w-16 h-16 rounded-full mr-4 border-2 border-blue-100" src="assests/bar_dips.jpg"/>
+       <div>
+        <p class="font-bold text-gray-800">BAR DIPS</p>
+        <p class="text-gray-600">UNTIL FAILURE x 2 SETS</p>
+        <div class="mt-1 flex items-center">
+         <i class="fas fa-fire text-blue-500 mr-1"></i>
+         <span class="text-xs text-gray-500">120 calories</span>
+        </div>
+       </div>
+      </div>
+      
+      <div class="flex items-center p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition">
+       <img alt="Push Up" class="w-16 h-16 rounded-full mr-4 border-2 border-blue-100" src="assests/push_up.jpg"/>
+       <div>
+        <p class="font-bold text-gray-800">PUSH UP</p>
+        <p class="text-gray-600">25 x 3 SETS</p>
+        <div class="mt-1 flex items-center">
+         <i class="fas fa-fire text-blue-500 mr-1"></i>
+         <span class="text-xs text-gray-500">100 calories</span>
+        </div>
+       </div>
+      </div>
+      
+      <div class="mt-4 flex justify-end">
+       <button class="bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-lg text-sm font-medium transition shadow">
+        <i class="fas fa-history mr-2"></i> View History
+       </button>
+      </div>
+     </div>
+    </div>
+    
+    <!-- Recommended workout card -->
+    <div class="suggestion-card rounded-2xl p-6 flex-1 shadow-lg card-hover">
+     <div class="flex items-center mb-6">
+      <img alt="Trainer" class="w-12 h-12 rounded-full mr-4 border-2 border-indigo-300 shadow" src="/api/placeholder/48/48"/>
+      <h2 class="text-lg font-bold bg-indigo-500 text-white py-2 px-6 rounded-full shadow-md">
+       RECOMMENDED WORKOUT
+      </h2>
+     </div>
+     
+     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div class="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition text-center">
+       <p class="font-bold text-gray-800 mb-2">BENCH PRESS</p>
+       <img alt="Bench Press" class="w-32 h-32 mx-auto rounded-lg mb-2 border border-gray-200" src="assests/flat_bench.jpg"/>
+       <p class="text-gray-600">15 x 4 SETS</p>
+       <div class="mt-2 flex justify-center">
+        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Primary</span>
+       </div>
+      </div>
+      
+      <div class="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition text-center">
+       <p class="font-bold text-gray-800 mb-2">INCLINE PRESS</p>
+       <img alt="Incline Press" class="w-32 h-32 mx-auto rounded-lg mb-2 border border-gray-200" src="assests/incline_press.jpg"/>
+       <p class="text-gray-600">12 x 3 SETS</p>
+       <div class="mt-2 flex justify-center">
+        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Secondary</span>
+       </div>
+      </div>
+      
+      <div class="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition text-center">
+       <p class="font-bold text-gray-800 mb-2">PEC DECK</p>
+       <img alt="Pec Deck" class="w-32 h-32 mx-auto rounded-lg mb-2 border border-gray-200" src="assests/pec_dec.jpg"/>
+       <p class="text-gray-600">12 x 3 SETS</p>
+       <div class="mt-2 flex justify-center">
+        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Secondary</span>
+       </div>
+      </div>
+      
+      <div class="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition text-center">
+       <p class="font-bold text-gray-800 mb-2">PULL OVER</p>
+       <img alt="Pull Over" class="w-32 h-32 mx-auto rounded-lg mb-2 border border-gray-200" src="assests/bar_dips.jpg"/>
+       <p class="text-gray-600">10 x 3 SETS</p>
+       <div class="mt-2 flex justify-center">
+        <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">Auxiliary</span>
+       </div>
+      </div>
+     </div>
+     
+     <div class="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition text-center mb-6">
+      <p class="font-bold text-gray-800 mb-2">FLAT FLY</p>
+      <img alt="Flat Fly" class="w-32 h-32 mx-auto rounded-lg mb-2 border border-gray-200" src="assests/flat_fly.jpg"/>
+      <p class="text-gray-600">10 x 2 SETS</p>
+      <div class="mt-2 flex justify-center">
+       <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">Auxiliary</span>
+      </div>
+     </div>
+     
+     <div class="bg-indigo-50 text-indigo-900 font-medium p-4 rounded-xl shadow border-l-4 border-indigo-500">
+      <div class="flex items-center">
+       <i class="fas fa-exclamation-circle text-indigo-600 mr-2 text-xl"></i>
+       <div>
+        <p class="font-bold">TRAINER SUGGESTION</p>
+        <p>Be careful with the left shoulder. Focus on proper form.</p>
+       </div>
+      </div>
+     </div>
+     
+     <div class="mt-6 flex justify-center">
+      <button class="bg-gradient-to-r from-indigo-600 to-blue-600 text-white py-3 px-8 rounded-lg font-bold shadow-lg hover:shadow-xl transition transform hover:scale-105">
+       <i class="fas fa-play-circle mr-2"></i> Start Workout
+      </button>
+     </div>
+    </div>
+   </div>
+   
+   <!-- Stats Section -->
+   <div class="w-full max-w-7xl mx-auto px-6 mb-8">
+    <div class="bg-white rounded-2xl shadow-lg p-6">
+     <h2 class="text-xl font-bold text-gray-800 mb-4">Workout Statistics</h2>
+     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-blue-50 p-4 rounded-xl">
+       <div class="flex items-center justify-between">
+        <div>
+         <p class="text-gray-500 text-sm">Total Weight</p>
+         <p class="text-2xl font-bold">3,240 kg</p>
+        </div>
+        <div class="bg-blue-100 p-3 rounded-full">
+         <i class="fas fa-weight-hanging text-blue-600"></i>
+        </div>
+       </div>
+      </div>
+      
+      <div class="bg-green-50 p-4 rounded-xl">
+       <div class="flex items-center justify-between">
+        <div>
+         <p class="text-gray-500 text-sm">Calories</p>
+         <p class="text-2xl font-bold">450</p>
+        </div>
+        <div class="bg-green-100 p-3 rounded-full">
+         <i class="fas fa-fire text-green-600"></i>
+        </div>
+       </div>
+      </div>
+      
+      <div class="bg-indigo-50 p-4 rounded-xl">
+       <div class="flex items-center justify-between">
+        <div>
+         <p class="text-gray-500 text-sm">Duration</p>
+         <p class="text-2xl font-bold">45 min</p>
+        </div>
+        <div class="bg-indigo-100 p-3 rounded-full">
+         <i class="fas fa-clock text-indigo-600"></i>
+        </div>
+       </div>
+      </div>
+      
+      <div class="bg-yellow-50 p-4 rounded-xl">
+       <div class="flex items-center justify-between">
+        <div>
+         <p class="text-gray-500 text-sm">Progress</p>
+         <p class="text-2xl font-bold">+12%</p>
+        </div>
+        <div class="bg-yellow-100 p-3 rounded-full">
+         <i class="fas fa-chart-line text-yellow-600"></i>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+   
+   <!-- Help section with chatbot -->
+   <div class="w-full max-w-7xl mx-auto px-6 mb-20">
+    <div class="bg-white rounded-2xl shadow-lg p-6 relative">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-gray-800">AI Fitness Assistant</h2>
+        <div class="flex space-x-2">
+          <button class="text-gray-400 hover:text-indigo-500">
+            <i class="fas fa-volume-up"></i>
+          </button>
+          <button class="text-gray-400 hover:text-indigo-500">
+            <i class="fas fa-expand"></i>
+          </button>
+          <button class="text-gray-400 hover:text-indigo-500">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div class="bg-gray-50 rounded-xl p-4 mb-4 h-64 overflow-y-auto">
+        <div class="flex items-start mb-4">
+          <div class="bot-avatar mr-2 flex-shrink-0">
+            <img src="/api/placeholder/40/40" alt="AI" class="w-10 h-10 rounded-full border-2 border-indigo-200">
+            <div class="status-dot"></div>
+          </div>
+          <div class="chat-bubble bg-indigo-50 text-indigo-900">
+            <p class="text-sm">Hi there! I'm your AI fitness assistant. How can I help with your workout today?</p>
+          </div>
+        </div>
+        
+        <div class="flex items-start justify-end mb-4">
+          <div class="chat-bubble bg-white text-gray-800 ml-auto">
+            <p class="text-sm">My left shoulder feels a bit sore. Any modifications for today's chest workout?</p>
+          </div>
+        </div>
+        
+        <div class="flex items-start mb-4">
+          <div class="bot-avatar mr-2 flex-shrink-0">
+            <img src="/api/placeholder/40/40" alt="AI" class="w-10 h-10 rounded-full border-2 border-indigo-200">
+            <div class="status-dot"></div>
+          </div>
+          <div class="chat-bubble bg-indigo-50 text-indigo-900">
+            <p class="text-sm">For your shoulder, I'd recommend:</p>
+            <ul class="text-sm list-disc pl-4 mt-1">
+              <li>Reduce weight on bench press by 20%</li>
+              <li>Replace incline press with cable crossovers</li>
+              <li>Add extra warm-up for rotator cuffs</li>
+            </ul>
+            <p class="text-sm mt-1">Would you like a modified routine?</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex items-center">
+        <input type="text" placeholder="Ask me anything about your workout..." class="flex-1 border border-gray-300 rounded-l-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        <button class="bg-indigo-600 text-white py-2 px-4 rounded-r-lg hover:bg-indigo-700 transition">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+      
+      <div class="absolute -top-3 -right-3">
+        <button class="bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-2 rounded-full shadow-lg hover:shadow-xl pulse-animation">
+          <i class="fas fa-robot"></i>
+        </button>
+      </div>
+    </div>
+   </div>
+  </div>
+  
+  <!-- Footer -->
+  <footer class="fixed bottom-0 left-0 right-0 workout-header text-white py-2 px-6 flex justify-between items-center shadow-lg">
+   <div class="flex items-center">
+    <i class="fas fa-heartbeat mr-2"></i>
+    <span class="text-sm font-medium">Stay consistent for best results!</span>
+   </div>
+   <div class="flex space-x-6">
+    <button class="hover:text-indigo-200 transition">
+     <i class="fas fa-home"></i>
+    </button>
+    <button class="hover:text-indigo-200 transition">
+     <i class="fas fa-calendar-alt"></i>
+    </button>
+    <button class="hover:text-indigo-200 transition">
+     <i class="fas fa-chart-bar"></i>
+    </button>
+    <button class="hover:text-indigo-200 transition">
+     <i class="fas fa-user"></i>
+    </button>
+   </div>
+  </footer>
+ </body>
+</html>
