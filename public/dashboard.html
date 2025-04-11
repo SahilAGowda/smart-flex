@@ -486,7 +486,7 @@
       // User authentication and session management
       let currentUser = null;
       
-      // Check if user is logged in
+      // Authentication check
       function checkAuth() {
         const userData = localStorage.getItem('userData');
         if (!userData) {
@@ -494,29 +494,17 @@
           return;
         }
         
-        currentUser = JSON.parse(userData);
-        document.getElementById('user-name').textContent = currentUser.name;
-        loadUserProfile();
-        loadWorkoutData();
-        loadNutritionData();
-      }
-      
-      // Load user profile data
-      async function loadUserProfile() {
         try {
-          const response = await fetch(`/api/profile/${currentUser.id}`);
-          if (!response.ok) throw new Error('Failed to fetch profile');
-          
-          const profile = await response.json();
-          
-          // Update profile information
-          document.getElementById('user-weight').textContent = `${profile.weight} kg`;
-          document.getElementById('user-height').textContent = `${profile.height} cm`;
-          document.getElementById('user-age').textContent = profile.age;
+          const user = JSON.parse(userData);
+          // Update UI with user data
+          document.getElementById('user-name').textContent = user.name || 'User';
+          document.getElementById('user-weight').textContent = `${user.weight} kg`;
+          document.getElementById('user-height').textContent = `${user.height} cm`;
+          document.getElementById('user-age').textContent = user.age;
           
           // Calculate BMI
-          const heightInMeters = profile.height / 100;
-          const bmi = (profile.weight / (heightInMeters * heightInMeters)).toFixed(1);
+          const heightInMeters = user.height / 100;
+          const bmi = (user.weight / (heightInMeters * heightInMeters)).toFixed(1);
           document.getElementById('user-bmi').textContent = bmi;
           
           // Update BMI category
@@ -524,70 +512,33 @@
           document.getElementById('bmi-category').textContent = bmiCategory;
           document.getElementById('bmi-category').className = `text-sm font-medium ${getBMICategoryColor(bmiCategory)}`;
           
+          // Load user's data
+          loadUserData(user.id);
         } catch (error) {
-          console.error('Error loading profile:', error);
-          showNotification('Failed to load profile data', 'error');
+          console.error('Error parsing user data:', error);
+          logout();
         }
       }
-      
-      // Load workout data
-      async function loadWorkoutData() {
+
+      // Load user data
+      async function loadUserData(userId) {
         try {
-          const response = await fetch(`/api/workout/sessions?userId=${currentUser.id}`);
-          if (!response.ok) throw new Error('Failed to fetch workout data');
-          
-          const workoutSessions = await response.json();
-          
-          // Update workout stats
-          if (workoutSessions.length > 0) {
-            const totalWorkouts = workoutSessions.length;
-            const totalDuration = workoutSessions.reduce((sum, session) => sum + (session.duration || 0), 0);
-            const caloriesBurned = workoutSessions.reduce((sum, session) => sum + (session.caloriesBurned || 0), 0);
-            
-            document.getElementById('total-workouts').textContent = totalWorkouts;
-            document.getElementById('total-duration').textContent = formatDuration(totalDuration);
-            document.getElementById('calories-burned').textContent = caloriesBurned;
-            
-            // Update workout history chart
-            updateWorkoutChart(workoutSessions);
+          // Fetch user's workout sessions
+          const workoutResponse = await fetch(`/api/workout/sessions?userId=${userId}`);
+          const workoutData = await workoutResponse.json();
+          if (workoutData.success) {
+            updateWorkoutChart(workoutData.sessions);
           }
-          
-        } catch (error) {
-          console.error('Error loading workout data:', error);
-          showNotification('Failed to load workout data', 'error');
-        }
-      }
-      
-      // Load nutrition data
-      async function loadNutritionData() {
-        try {
-          const response = await fetch(`/api/nutrition/logs?userId=${currentUser.id}`);
-          if (!response.ok) throw new Error('Failed to fetch nutrition data');
-          
-          const nutritionLogs = await response.json();
-          
-          // Update nutrition stats
-          if (nutritionLogs.length > 0) {
-            const today = new Date().toISOString().split('T')[0];
-            const todayLogs = nutritionLogs.filter(log => log.timestamp.startsWith(today));
-            
-            const totalCalories = todayLogs.reduce((sum, log) => sum + (log.calories || 0), 0);
-            const protein = todayLogs.reduce((sum, log) => sum + (log.protein || 0), 0);
-            const carbs = todayLogs.reduce((sum, log) => sum + (log.carbs || 0), 0);
-            const fat = todayLogs.reduce((sum, log) => sum + (log.fat || 0), 0);
-            
-            document.getElementById('calories-consumed').textContent = totalCalories;
-            document.getElementById('protein-consumed').textContent = `${protein}g`;
-            document.getElementById('carbs-consumed').textContent = `${carbs}g`;
-            document.getElementById('fat-consumed').textContent = `${fat}g`;
-            
-            // Update nutrition chart
-            updateNutritionChart(nutritionLogs);
+
+          // Fetch user's nutrition logs
+          const nutritionResponse = await fetch(`/api/nutrition/logs?userId=${userId}`);
+          const nutritionData = await nutritionResponse.json();
+          if (nutritionData.success) {
+            updateNutritionChart(nutritionData.logs);
           }
-          
         } catch (error) {
-          console.error('Error loading nutrition data:', error);
-          showNotification('Failed to load nutrition data', 'error');
+          console.error('Error loading user data:', error);
+          showNotification('Failed to load user data', 'error');
         }
       }
       
@@ -643,6 +594,8 @@
       // Logout function
       function logout() {
         localStorage.removeItem('userData');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userEmail');
         window.location.href = '/login.html';
       }
     </script>

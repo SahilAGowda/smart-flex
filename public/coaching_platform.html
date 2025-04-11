@@ -348,15 +348,51 @@
         let currentCamera = 'user'; // 'user' for front camera, 'environment' for back camera
         let workoutStartTime = null;
         let workoutTimer = null;
+        let isWorkoutActive = false;
 
         // Check authentication on page load
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check if user is logged in
             const userId = localStorage.getItem('userId');
-            if (!userId) {
+            const userEmail = localStorage.getItem('userEmail');
+            
+            if (!userId || !userEmail) {
+                // If not logged in, redirect to login page
                 window.location.href = '/login.html';
                 return;
             }
-            initializeWorkout();
+            
+            // Verify session with server
+            try {
+                const response = await fetch('/api/auth/verify-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: userId,
+                        email: userEmail
+                    })
+                });
+                
+                if (!response.ok) {
+                    // If session is invalid, clear storage and redirect
+                    localStorage.removeItem('userId');
+                    localStorage.removeItem('userEmail');
+                    window.location.href = '/login.html';
+                    return;
+                }
+                
+                // Session is valid, initialize workout
+                initializeWorkout();
+                addAIMessage("Welcome to your AI workout session! Click the play button to start your workout.");
+            } catch (error) {
+                console.error('Error verifying session:', error);
+                // On error, assume session is invalid
+                localStorage.removeItem('userId');
+                localStorage.removeItem('userEmail');
+                window.location.href = '/login.html';
+            }
         });
 
         // Initialize workout components
@@ -383,11 +419,19 @@
 
         // Start workout session
         async function startWorkout() {
+            if (isWorkoutActive) {
+                return; // Prevent multiple starts
+            }
+
             try {
                 const userId = localStorage.getItem('userId');
                 if (!userId) {
-                    throw new Error('User not authenticated');
+                    window.location.href = '/login.html';
+                    return;
                 }
+
+                // Start video stream first
+                await startVideoStream();
 
                 const response = await fetch('/api/workout/start', {
                     method: 'POST',
@@ -407,9 +451,7 @@
                 const data = await response.json();
                 workoutSession = data.sessionId;
                 workoutStartTime = new Date();
-                
-                // Start video stream
-                await startVideoStream();
+                isWorkoutActive = true;
                 
                 // Start workout timer
                 startWorkoutTimer();
@@ -423,6 +465,7 @@
             } catch (error) {
                 console.error('Error starting workout:', error);
                 alert('Failed to start workout. Please try again.');
+                isWorkoutActive = false;
             }
         }
 
@@ -444,6 +487,10 @@
 
         // Pause workout
         function pauseWorkout() {
+            if (!isWorkoutActive) {
+                return;
+            }
+
             if (workoutTimer) {
                 clearInterval(workoutTimer);
                 workoutTimer = null;
@@ -462,6 +509,10 @@
 
         // Stop workout
         async function stopWorkout() {
+            if (!isWorkoutActive) {
+                return;
+            }
+
             if (workoutTimer) {
                 clearInterval(workoutTimer);
                 workoutTimer = null;
@@ -492,6 +543,7 @@
                     });
                     
                     workoutSession = null;
+                    isWorkoutActive = false;
                     addAIMessage("Workout session saved! Great job today!");
                 } catch (error) {
                     console.error('Error saving workout:', error);
@@ -513,6 +565,7 @@
                 const videoElement = document.createElement('video');
                 videoElement.srcObject = videoStream;
                 videoElement.autoplay = true;
+                videoElement.playsInline = true;
                 
                 const cameraFeed = document.querySelector('.camera-feed');
                 cameraFeed.innerHTML = '';
@@ -520,6 +573,7 @@
             } catch (error) {
                 console.error('Error accessing camera:', error);
                 alert('Failed to access camera. Please ensure camera permissions are granted.');
+                throw error;
             }
         }
 

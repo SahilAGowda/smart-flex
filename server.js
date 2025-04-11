@@ -626,6 +626,36 @@ function generateGeneralResponse(message) {
 const workoutProcesses = new Map();
 const workoutSessions = new Map();
 
+// Session verification endpoint
+app.post('/api/auth/verify-session', async (req, res) => {
+    const { userId, email } = req.body;
+    
+    if (!userId || !email) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    try {
+        // Check if user exists in database
+        const [users] = await dbPool.execute('SELECT id, email FROM users WHERE id = ? AND email = ?', [userId, email]);
+        
+        if (users.length === 0) {
+            return res.status(401).json({ error: 'Invalid session' });
+        }
+        
+        // Session is valid
+        return res.status(200).json({ 
+            success: true,
+            user: {
+                id: users[0].id,
+                email: users[0].email
+            }
+        });
+    } catch (error) {
+        console.error('Error verifying session:', error);
+        return res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);

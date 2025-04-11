@@ -307,6 +307,8 @@
                     
                     // Store user info in local storage for session management
                     localStorage.setItem('userData', JSON.stringify(data.user));
+                    localStorage.setItem('userId', data.user.id);
+                    localStorage.setItem('userEmail', data.user.email);
                     
                     // Show success effect before redirecting
                     container.style.borderColor = '#43cea2';
