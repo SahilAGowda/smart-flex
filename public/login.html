@@ -306,18 +306,47 @@
                     errorMessage.style.display = 'none';
                     
                     // Store user info in local storage for session management
-                    localStorage.setItem('userData', JSON.stringify(data.user));
-                    localStorage.setItem('userId', data.user.id);
-                    localStorage.setItem('userEmail', data.user.email);
+                    console.log('Login response:', data);
+                    console.log('User data to store:', data.user);
                     
-                    // Show success effect before redirecting
-                    container.style.borderColor = '#43cea2';
-                    loginButton.innerHTML = '<i class="fas fa-check-circle"></i> Success!';
-                    
-                    // Redirect after short delay
-                    setTimeout(function() {
-                        window.location.href = 'dashboard.html';
-                    }, 800);
+                    try {
+                        // First clear any existing data
+                        localStorage.clear();
+                        
+                        // Store the data
+                        localStorage.setItem('userData', JSON.stringify(data.user));
+                        localStorage.setItem('userId', data.user.id.toString());  // Convert to string
+                        localStorage.setItem('userEmail', data.user.email);
+                        
+                        // Verify storage immediately
+                        const storedData = {
+                            userData: localStorage.getItem('userData'),
+                            userId: localStorage.getItem('userId'),
+                            userEmail: localStorage.getItem('userEmail')
+                        };
+                        console.log('Stored data verification:', storedData);
+                        
+                        // Show success effect
+                        container.style.borderColor = '#43cea2';
+                        loginButton.innerHTML = '<i class="fas fa-check-circle"></i> Success!';
+                        
+                        // Redirect after verifying data is stored
+                        setTimeout(() => {
+                            const finalCheck = localStorage.getItem('userId');
+                            console.log('Final userId check before redirect:', finalCheck);
+                            if (finalCheck) {
+                                window.location.href = 'dashboard.html';
+                            } else {
+                                throw new Error('userId not found after storage');
+                            }
+                        }, 1000);
+                    } catch (error) {
+                        console.error('Error storing user data:', error);
+                        errorMessage.textContent = 'Error storing user data. Please try again.';
+                        errorMessage.style.display = 'block';
+                        loginButton.innerHTML = 'Login';
+                        loginButton.disabled = false;
+                    }
                 } else {
                     // Login failed
                     errorMessage.textContent = data.message || 'Invalid email or password';

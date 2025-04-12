@@ -3,661 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Workout Coach</title>
+    <title>Start Workout</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
-        }
-        
         body {
-            background-color: #f0f4f8;
-            color: #333;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 20px;
-        }
-        
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #3a86ff;
-        }
-        
-        .back-button {
-            padding: 8px 15px;
-            background-color: #3a86ff;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            min-height: 100vh;
             color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
         }
-        
-        .back-button:hover {
-            background-color: #2a76ef;
+        .workout-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 800px;
         }
-        
-        .main-content {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        
         .video-container {
-            flex: 3;
-            background-color: #000;
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            background: #000;
             border-radius: 10px;
             overflow: hidden;
-            position: relative;
-            aspect-ratio: 16/9;
         }
-        
-        .camera-feed {
+        .video-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            background-color: #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
+            object-fit: cover;
         }
-        
-        .camera-controls {
-            position: absolute;
-            bottom: 15px;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
         }
-        
-        .control-btn {
-            background-color: rgba(0, 0, 0, 0.6);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-        
-        .control-btn:hover {
-            background-color: rgba(58, 134, 255, 0.8);
-        }
-        
-        .sidebar {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        .workout-info, .feedback-panel, .stats-panel {
-            background-color: white;
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
             border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            text-align: center;
         }
-        
-        .workout-info h2, .feedback-panel h2, .stats-panel h2 {
-            margin-bottom: 15px;
-            color: #3a86ff;
-            font-size: 18px;
-        }
-        
-        .exercise-name {
-            font-size: 24px;
+        .stat-value {
+            font-size: 2rem;
             font-weight: bold;
-            margin-bottom: 10px;
+            color: #4CAF50;
         }
-        
-        .timer {
-            font-size: 36px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        
-        .feedback-list {
-            list-style: none;
-        }
-        
-        .feedback-item {
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .feedback-item:last-child {
-            border-bottom: none;
-        }
-        
-        .feedback-positive {
-            color: #2ecc71;
-        }
-        
-        .feedback-negative {
-            color: #e74c3c;
-        }
-        
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-        
-        .chat-container {
-            background-color: white;
-            border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        }
-        
-        .chat-messages {
-            height: 200px;
-            overflow-y: auto;
-            border: 1px solid #eee;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-        }
-        
-        .chat-input {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .chat-input input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        
-        .chat-input button {
-            background-color: #3a86ff;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        
-        .message {
-            margin-bottom: 10px;
-            padding: 8px 12px;
-            border-radius: 15px;
-            max-width: 80%;
-        }
-        
-        .ai-message {
-            background-color: #f0f0f0;
-            align-self: flex-start;
-            border-bottom-left-radius: 5px;
-        }
-        
-        .user-message {
-            background-color: #3a86ff;
-            color: white;
-            align-self: flex-end;
-            margin-left: auto;
-            border-bottom-right-radius: 5px;
-        }
-        
-        .chat-messages {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        footer {
-            text-align: center;
-            margin-top: 30px;
-            padding: 20px 0;
+        .stat-label {
+            font-size: 0.9rem;
             color: #888;
-            font-size: 14px;
         }
-        
-        @media (max-width: 768px) {
-            .main-content {
-                flex-direction: column;
-            }
-            
-            .sidebar {
-                order: 2;
-            }
-            
-            .video-container {
-                order: 1;
-            }
+        .workout-type-selector {
+            margin-bottom: 1rem;
+            text-align: center;
         }
-        
-        .switch-camera {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background-color: rgba(0, 0, 0, 0.6);
-            color: white;
-            border: none;
+        .workout-type-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid transparent;
+            padding: 0.5rem 1rem;
+            margin: 0 0.5rem;
             border-radius: 5px;
-            padding: 8px 12px;
             cursor: pointer;
+            transition: all 0.3s ease;
         }
-        
-        .switch-camera:hover {
-            background-color: rgba(58, 134, 255, 0.8);
+        .workout-type-btn.active {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.2);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="logo">AI Workout Coach</div>
-            <a href="dashboard.html" class="back-button">← Back to Dashboard</a>
-        </header>
-        
-        <div class="main-content">
+    <div class="container mx-auto px-4 py-8">
+        <div class="workout-container">
+            <h1 class="text-3xl font-bold mb-6 text-center">Workout Session</h1>
+            
+            <div class="workout-type-selector">
+                <button class="workout-type-btn" data-type="bicep_curl">Bicep Curl</button>
+                <button class="workout-type-btn" data-type="squat">Squat</button>
+                <button class="workout-type-btn" data-type="pushup">Pushup</button>
+            </div>
+            
             <div class="video-container">
-                <div class="camera-feed">
-                    <img src="assests/workout.jpg" alt="Camera Feed Placeholder">
+                <video id="videoElement" autoplay playsinline></video>
+            </div>
+            
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-value" id="repCount">0</div>
+                    <div class="stat-label">Reps</div>
                 </div>
-                <button class="switch-camera">Switch Camera</button>
-                <div class="camera-controls">
-                    <button class="control-btn">▶️</button>
-                    <button class="control-btn">⏸️</button>
-                    <button class="control-btn">⏹️</button>
-                    <button class="control-btn">⚙️</button>
+                <div class="stat-card">
+                    <div class="stat-value" id="duration">00:00</div>
+                    <div class="stat-label">Duration</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="calories">0</div>
+                    <div class="stat-label">Calories</div>
                 </div>
             </div>
             
-            <div class="sidebar">
-                <div class="workout-info">
-                    <h2>Current Workout</h2>
-                    <div class="exercise-name">Squats</div>
-                    <div class="timer">00:32</div>
-                    <div>Set 2 of 4</div>
-                    <div>Reps: 8/12</div>
-                </div>
-                
-                <div class="feedback-panel">
-                    <h2>Real-time Feedback</h2>
-                    <ul class="feedback-list">
-                        <li class="feedback-item feedback-positive">✓ Good knee alignment</li>
-                        <li class="feedback-item feedback-positive">✓ Proper depth</li>
-                        <li class="feedback-item feedback-negative">✗ Keep your back straighter</li>
-                        <li class="feedback-item">Go slower on the way down</li>
-                    </ul>
-                </div>
-                
-                <div class="stats-panel">
-                    <h2>Workout Stats</h2>
-                    <div class="stat-row">
-                        <span>Duration:</span>
-                        <span>15:42</span>
-                    </div>
-                    <div class="stat-row">
-                        <span>Calories:</span>
-                        <span>187</span>
-                    </div>
-                    <div class="stat-row">
-                        <span>Form Score:</span>
-                        <span>82%</span>
-                    </div>
-                </div>
+            <div class="mt-6 text-center">
+                <button id="startWorkoutBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300 mr-4">
+                    Start Workout
+                </button>
+                <button id="endWorkoutBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300" disabled>
+                    End Workout
+                </button>
             </div>
         </div>
-        
-        <div class="chat-container">
-            <h2>AI Coach Chat</h2>
-            <div class="chat-messages">
-                <div class="message ai-message">Hi there! I'm your AI workout coach. I'll be monitoring your form and providing feedback during the session.</div>
-                <div class="message user-message">Can you check if my squat depth is correct?</div>
-                <div class="message ai-message">Your squat depth looks good! Make sure to keep your back straighter on the next rep and maintain weight on your heels.</div>
-            </div>
-            <div class="chat-input">
-                <input type="text" placeholder="Ask your AI coach a question...">
-                <button>Send</button>
-            </div>
-        </div>
-        
-        <footer>
-            &copy; 2025 AI Workout Coach Platform. All rights reserved.
-        </footer>
     </div>
-    
-    <script>
-        let workoutSession = null;
-        let videoStream = null;
-        let currentCamera = 'user'; // 'user' for front camera, 'environment' for back camera
-        let workoutStartTime = null;
-        let workoutTimer = null;
-        let isWorkoutActive = false;
 
-        // Check authentication on page load
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Check if user is logged in
-            const userId = localStorage.getItem('userId');
-            const userEmail = localStorage.getItem('userEmail');
-            
-            if (!userId || !userEmail) {
-                // If not logged in, redirect to login page
-                window.location.href = '/login.html';
-                return;
-            }
-            
-            // Verify session with server
-            try {
-                const response = await fetch('/api/auth/verify-session', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        userId: userId,
-                        email: userEmail
-                    })
-                });
-                
-                if (!response.ok) {
-                    // If session is invalid, clear storage and redirect
-                    localStorage.removeItem('userId');
-                    localStorage.removeItem('userEmail');
-                    window.location.href = '/login.html';
-                    return;
-                }
-                
-                // Session is valid, initialize workout
-                initializeWorkout();
-                addAIMessage("Welcome to your AI workout session! Click the play button to start your workout.");
-            } catch (error) {
-                console.error('Error verifying session:', error);
-                // On error, assume session is invalid
-                localStorage.removeItem('userId');
-                localStorage.removeItem('userEmail');
-                window.location.href = '/login.html';
-            }
+    <script>
+        let selectedWorkoutType = 'squat'; // Default workout type
+        let workoutInterval = null;
+        let currentSessionId = null; // Store the current session ID
+
+        // Function to handle workout type selection
+        document.querySelectorAll('.workout-type-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.workout-type-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedWorkoutType = btn.dataset.type;
+            });
         });
 
-        // Initialize workout components
-        function initializeWorkout() {
-            // Set up camera controls
-            setupCameraControls();
-            // Set up chat functionality
-            setupChatFunctionality();
-            // Initialize workout stats
-            updateWorkoutStats({
-                duration: '00:00',
-                calories: '0',
-                formScore: '0'
-            });
-        }
+        // Set default active workout type
+        document.querySelector('.workout-type-btn[data-type="squat"]').classList.add('active');
 
-        // Set up camera controls
-        function setupCameraControls() {
-            document.querySelector('.switch-camera').addEventListener('click', switchCamera);
-            document.querySelector('.control-btn:nth-child(1)').addEventListener('click', startWorkout);
-            document.querySelector('.control-btn:nth-child(2)').addEventListener('click', pauseWorkout);
-            document.querySelector('.control-btn:nth-child(3)').addEventListener('click', stopWorkout);
-        }
-
-        // Start workout session
+        // Function to start the workout session
         async function startWorkout() {
-            if (isWorkoutActive) {
-                return; // Prevent multiple starts
-            }
-
             try {
                 const userId = localStorage.getItem('userId');
+                console.log('Starting workout with userId:', userId);
+                
                 if (!userId) {
-                    window.location.href = '/login.html';
+                    console.log('No userId found, redirecting to login');
+                    window.location.href = '/login';
                     return;
                 }
-
-                // Start video stream first
-                await startVideoStream();
 
                 const response = await fetch('/api/workout/start', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'user-id': userId
                     },
                     body: JSON.stringify({
                         userId: userId,
-                        workoutType: 'squat' // Default workout type
+                        workoutType: selectedWorkoutType
                     })
                 });
-
+                
                 if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login';
+                        return;
+                    }
                     throw new Error('Failed to start workout');
                 }
-
-                const data = await response.json();
-                workoutSession = data.sessionId;
-                workoutStartTime = new Date();
-                isWorkoutActive = true;
                 
-                // Start workout timer
-                startWorkoutTimer();
+                const data = await response.json();
+                currentSessionId = data.sessionId; // Store the session ID
+                console.log('Workout started with sessionId:', currentSessionId);
                 
                 // Update UI
-                document.querySelector('.exercise-name').textContent = 'Squats';
-                document.querySelector('.timer').textContent = '00:00';
+                document.getElementById('startWorkoutBtn').disabled = true;
+                document.getElementById('endWorkoutBtn').disabled = false;
                 
-                // Add initial AI message
-                addAIMessage("Workout session started! I'll monitor your form and provide real-time feedback.");
+                // Start reading workout data
+                startReadingWorkoutData();
             } catch (error) {
                 console.error('Error starting workout:', error);
                 alert('Failed to start workout. Please try again.');
-                isWorkoutActive = false;
             }
         }
 
-        // Start workout timer
-        function startWorkoutTimer() {
-            if (workoutTimer) {
-                clearInterval(workoutTimer);
-            }
+        // Function to read workout data from the Flask server
+        function startReadingWorkoutData() {
+            const userId = localStorage.getItem('userId');
+            console.log('Starting workout data reading with userId:', userId, 'and sessionId:', currentSessionId);
             
-            workoutTimer = setInterval(() => {
-                const now = new Date();
-                const diff = now - workoutStartTime;
-                const minutes = Math.floor(diff / 60000);
-                const seconds = Math.floor((diff % 60000) / 1000);
-                document.querySelector('.timer').textContent = 
-                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
-        }
-
-        // Pause workout
-        function pauseWorkout() {
-            if (!isWorkoutActive) {
-                return;
-            }
-
-            if (workoutTimer) {
-                clearInterval(workoutTimer);
-                workoutTimer = null;
-                if (videoStream) {
-                    videoStream.getTracks().forEach(track => track.enabled = false);
-                }
-                addAIMessage("Workout paused. Click play to resume.");
-            } else {
-                startWorkoutTimer();
-                if (videoStream) {
-                    videoStream.getTracks().forEach(track => track.enabled = true);
-                }
-                addAIMessage("Workout resumed. Keep up the good work!");
-            }
-        }
-
-        // Stop workout
-        async function stopWorkout() {
-            if (!isWorkoutActive) {
-                return;
-            }
-
-            if (workoutTimer) {
-                clearInterval(workoutTimer);
-                workoutTimer = null;
-            }
-            
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());
-            }
-            
-            if (workoutSession) {
+            workoutInterval = setInterval(async () => {
                 try {
-                    const workoutData = {
-                        sessionId: workoutSession,
-                        duration: document.querySelector('.timer').textContent,
-                        calories: document.querySelector('.stat-row:nth-child(2) span:last-child').textContent,
-                        formScore: document.querySelector('.stat-row:nth-child(3) span:last-child').textContent
-                    };
-
-                    await fetch('/api/workout/save', {
-                        method: 'POST',
+                    const response = await fetch(`/api/workout/data?sessionId=${currentSessionId}`, {
                         headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            userId: localStorage.getItem('userId'),
-                            workoutData: workoutData
-                        })
-                    });
-                    
-                    workoutSession = null;
-                    isWorkoutActive = false;
-                    addAIMessage("Workout session saved! Great job today!");
-                } catch (error) {
-                    console.error('Error saving workout:', error);
-                    alert('Failed to save workout data.');
-                }
-            }
-        }
-
-        // Handle video stream
-        async function startVideoStream() {
-            try {
-                const constraints = {
-                    video: {
-                        facingMode: currentCamera
-                    }
-                };
-                
-                videoStream = await navigator.mediaDevices.getUserMedia(constraints);
-                const videoElement = document.createElement('video');
-                videoElement.srcObject = videoStream;
-                videoElement.autoplay = true;
-                videoElement.playsInline = true;
-                
-                const cameraFeed = document.querySelector('.camera-feed');
-                cameraFeed.innerHTML = '';
-                cameraFeed.appendChild(videoElement);
-            } catch (error) {
-                console.error('Error accessing camera:', error);
-                alert('Failed to access camera. Please ensure camera permissions are granted.');
-                throw error;
-            }
-        }
-
-        // Switch camera
-        function switchCamera() {
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());
-            }
-            
-            currentCamera = currentCamera === 'user' ? 'environment' : 'user';
-            startVideoStream();
-        }
-
-        // Chat functionality
-        function addUserMessage(message) {
-            const chatMessages = document.querySelector('.chat-messages');
-            const userMessage = document.createElement('div');
-            userMessage.classList.add('message', 'user-message');
-            userMessage.textContent = message;
-            chatMessages.appendChild(userMessage);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function addAIMessage(message) {
-            const chatMessages = document.querySelector('.chat-messages');
-            const aiMessage = document.createElement('div');
-            aiMessage.classList.add('message', 'ai-message');
-            aiMessage.textContent = message;
-            chatMessages.appendChild(aiMessage);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // Handle chat input
-        function setupChatFunctionality() {
-            document.querySelector('.chat-input button').addEventListener('click', async function() {
-                const input = document.querySelector('.chat-input input');
-                const message = input.value.trim();
-                
-                if (message) {
-                    addUserMessage(message);
-                    
-                    try {
-                        // Send message to server for processing
-                        const response = await fetch('/api/chat', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                userId: localStorage.getItem('userId'),
-                                message: message,
-                                workoutSession: workoutSession
-                            })
-                        });
-                        
-                        if (!response.ok) {
-                            throw new Error('Failed to get AI response');
+                            'user-id': userId
                         }
-                        
-                        const data = await response.json();
-                        addAIMessage(data.response);
-                    } catch (error) {
-                        console.error('Error getting AI response:', error);
-                        addAIMessage("I'm having trouble processing your request. Please try again.");
+                    });
+                    if (response.status === 401) {
+                        clearInterval(workoutInterval);
+                        console.log('Unauthorized access, redirecting to login');
+                        window.location.href = '/login';
+                        return;
                     }
+                    if (response.ok) {
+                        const data = await response.json();
+                        updateStats(data);
+                    }
+                } catch (error) {
+                    console.error('Error reading workout data:', error);
+                }
+            }, 1000); // Update every second
+        }
+
+        // Function to update stats on the page
+        function updateStats(data) {
+            document.getElementById('repCount').textContent = data.repCount || 0;
+            document.getElementById('duration').textContent = formatDuration(data.duration || 0);
+            document.getElementById('calories').textContent = Math.round(data.calories || 0);
+        }
+
+        // Function to format duration
+        function formatDuration(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        // Function to end workout
+        async function endWorkout() {
+            try {
+                const userId = localStorage.getItem('userId');
+                if (!userId) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                if (!currentSessionId) {
+                    console.error('No active session ID found');
+                    alert('No active workout session found. Please try again.');
+                    return;
+                }
+
+                const response = await fetch('/api/workout/end', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'user-id': userId
+                    },
+                    body: JSON.stringify({
+                        sessionId: currentSessionId,
+                        userId: userId
+                    })
+                });
+                
+                if (response.ok) {
+                    // Clear interval and reset UI
+                    clearInterval(workoutInterval);
+                    document.getElementById('startWorkoutBtn').disabled = false;
+                    document.getElementById('endWorkoutBtn').disabled = true;
                     
-                    input.value = '';
+                    // Get final workout data
+                    const data = await response.json();
+                    
+                    // Save workout data to localStorage for dashboard
+                    const workouts = JSON.parse(localStorage.getItem('workouts') || '[]');
+                    workouts.push({
+                        type: selectedWorkoutType,
+                        reps: data.repCount,
+                        duration: data.duration,
+                        calories: data.calories,
+                        date: new Date().toISOString()
+                    });
+                    localStorage.setItem('workouts', JSON.stringify(workouts));
+                    
+                    // Reset session ID
+                    currentSessionId = null;
+                    
+                    // Redirect to dashboard
+                    window.location.href = '/dashboard.html';
+                } else {
+                    throw new Error('Failed to end workout');
                 }
-            });
-
-            // Handle Enter key in chat input
-            document.querySelector('.chat-input input').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    document.querySelector('.chat-input button').click();
-                }
-            });
+            } catch (error) {
+                console.error('Error ending workout:', error);
+                alert('Failed to end workout. Please try again.');
+            }
         }
 
-        // Update workout stats
-        function updateWorkoutStats(stats) {
-            document.querySelector('.stat-row:nth-child(1) span:last-child').textContent = stats.duration;
-            document.querySelector('.stat-row:nth-child(2) span:last-child').textContent = stats.calories;
-            document.querySelector('.stat-row:nth-child(3) span:last-child').textContent = stats.formScore;
-        }
+        // Event listeners
+        document.getElementById('startWorkoutBtn').addEventListener('click', startWorkout);
+        document.getElementById('endWorkoutBtn').addEventListener('click', endWorkout);
+
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const userId = localStorage.getItem('userId');
+            console.log('Current userId in localStorage:', userId);
+            if (!userId) {
+                window.location.href = '/login';
+                return;
+            }
+            console.log('User is authenticated with ID:', userId);
+        });
     </script>
 </body>
 </html>

@@ -5,6 +5,7 @@ import json
 import sys
 import time
 import datetime
+import traceback
 
 # Initialize MediaPipe Pose
 mp_drawing = mp.solutions.drawing_utils
@@ -70,7 +71,9 @@ def detect_exercise(landmarks, exercise_type):
 def main():
     # Parse command line arguments
     if len(sys.argv) < 3:
-        print("Usage: python workout_monitering.py <userId> <workoutType>")
+        print(json.dumps({
+            "error": "Usage: python workout_monitering.py <userId> <workoutType>"
+        }))
         sys.exit(1)
     
     user_id = sys.argv[1]
@@ -82,15 +85,39 @@ def main():
     start_time = time.time()
     
     # Initialize video capture
+    print(json.dumps({"status": "initializing", "message": "Opening camera..."}))
+    sys.stdout.flush()
+    
     cap = cv2.VideoCapture(0)
+    if not cap.isOpened():
+        print(json.dumps({
+            "error": "Failed to open camera. Please check if your camera is connected and not in use by another application."
+        }))
+        sys.stdout.flush()
+        sys.exit(1)
+    
+    # Set camera properties for better performance
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    cap.set(cv2.CAP_PROP_FPS, 30)
+    
+    print(json.dumps({"status": "ready", "message": "Camera initialized successfully"}))
+    sys.stdout.flush()
     
     # Initialize MediaPipe Pose
     with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
+        frame_count = 0
+        last_log_time = time.time()
+        
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
+                print(json.dumps({"error": "Failed to read frame from camera"}))
+                sys.stdout.flush()
                 break
                 
+            frame_count += 1
+            
             # Convert the BGR image to RGB
             image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             image.flags.writeable = False
@@ -126,8 +153,11 @@ def main():
                         "userId": user_id,
                         "workoutType": workout_type,
                         "repCount": counter,
-                        "stage": current_stage
+                        "stage": current_stage,
+                        "duration": int(time.time() - start_time),
+                        "calories": int((time.time() - start_time) * 0.1)  # Rough estimate: 0.1 calories per second
                     }))
+                    sys.stdout.flush()  # Ensure the output is sent immediately
                 
                 stage = current_stage
                 
@@ -137,14 +167,31 @@ def main():
                 cv2.putText(image, f'STAGE: {stage}', (10, 70), 
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
             
+            # Log status every 5 seconds
+            current_time = time.time()
+            if current_time - last_log_time >= 5:
+                print(json.dumps({
+                    "status": "running",
+                    "frameCount": frame_count,
+                    "fps": frame_count / (current_time - start_time),
+                    "repCount": counter
+                }))
+                sys.stdout.flush()
+                last_log_time = current_time
+            
             # Display the image
             cv2.imshow('Workout Tracking', image)
             
             # Break the loop if 'q' is pressed
             if cv2.waitKey(1) & 0xFF == ord('q'):
+                print(json.dumps({"status": "stopping", "message": "User requested stop"}))
+                sys.stdout.flush()
                 break
     
     # Release resources
+    print(json.dumps({"status": "cleaning_up", "message": "Releasing camera resources"}))
+    sys.stdout.flush()
+    
     cap.release()
     cv2.destroyAllWindows()
     
@@ -157,12 +204,22 @@ def main():
         "userId": user_id,
         "workoutType": workout_type,
         "totalReps": counter,
-        "duration": duration,
+        "duration": int(duration),
+        "calories": int(duration * 0.1),
         "status": "completed"
     }))
+    sys.stdout.flush()  # Ensure the final output is sent
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(json.dumps({
+            "error": f"Unexpected error: {str(e)}",
+            "traceback": traceback.format_exc()
+        }))
+        sys.stdout.flush()
+        sys.exit(1)
 
 
     

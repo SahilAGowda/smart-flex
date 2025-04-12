@@ -88,6 +88,20 @@ app.get('/workout_routine', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'workout_routine.html'));
 });
 
+// Authentication middleware
+const authenticateUser = (req, res, next) => {
+    const userId = req.headers['user-id'];
+    if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
+    next();
+};
+
+// Add startworkout route
+app.get('/startworkout', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'startworkout.html'));
+});
+
 // Handle registration form submission
 app.post('/register', async (req, res) => {
     const { name, age, sex, weight, height, email, password } = req.body;
@@ -158,84 +172,113 @@ app.post('/login', async (req, res) => {
 });
 
 // Workout monitoring endpoints
-app.post('/api/workout/start', async (req, res) => {
-    const { userId, workoutType } = req.body;
-    
-    if (!userId || !workoutType) {
-        return res.status(400).json({ error: 'Missing required parameters' });
-    }
-    
+app.post('/api/workout/start', authenticateUser, async (req, res) => {
     try {
+        const { userId, workoutType } = req.body;
+        
+        if (!userId || !workoutType) {
+            return res.status(400).json({ error: 'Missing required parameters' });
+        }
+
         // Generate a unique session ID
         const sessionId = Date.now().toString();
         
-        // Start the Python workout monitoring script
-        const pythonProcess = spawn('python', ['Python/workout_monitering.py', userId, workoutType]);
-        
-        // Store the process for later use
+        // Start the Python script for workout monitoring
+        const pythonProcess = spawn('python', [
+            'Python/workout_monitering.py',
+            userId,
+            workoutType
+        ]);
+
+        // Store the process and session information
         workoutProcesses.set(sessionId, pythonProcess);
-        
+        workoutSessions.set(sessionId, {
+            userId,
+            workoutType,
+            startTime: Date.now(),
+            data: {
+                repCount: 0,
+                duration: 0,
+                calories: 0
+            }
+        });
+
         // Handle Python script output
         pythonProcess.stdout.on('data', (data) => {
             try {
                 const workoutData = JSON.parse(data.toString());
-                // Store workout data in memory for real-time access
-                workoutSessions.set(sessionId, workoutData);
+                const session = workoutSessions.get(sessionId);
+                if (session) {
+                    session.data = workoutData;
+                }
             } catch (error) {
                 console.error('Error parsing workout data:', error);
             }
         });
-        
+
         // Handle Python script errors
         pythonProcess.stderr.on('data', (data) => {
-            console.error(`Workout monitoring error: ${data}`);
+            console.error(`Python script error: ${data}`);
         });
-        
+
         // Handle Python script exit
         pythonProcess.on('close', (code) => {
-            console.log(`Workout monitoring process exited with code ${code}`);
+            console.log(`Python script exited with code ${code}`);
             workoutProcesses.delete(sessionId);
+            workoutSessions.delete(sessionId);
         });
-        
+
         res.json({ sessionId });
     } catch (error) {
         console.error('Error starting workout:', error);
-        res.status(500).json({ error: 'Failed to start workout monitoring' });
+        res.status(500).json({ error: 'Failed to start workout' });
     }
 });
 
-app.post('/api/workout/save', async (req, res) => {
-    const { userId, workoutData } = req.body;
+app.get('/api/workout/data', (req, res) => {
+    const sessionId = req.query.sessionId;
+    const session = workoutSessions.get(sessionId);
     
-    if (!userId || !workoutData) {
-        return res.status(400).json({ error: 'Missing required parameters' });
+    if (!session) {
+        return res.status(404).json({ error: 'Workout session not found' });
     }
     
+    res.json(session.data);
+});
+
+app.post('/api/workout/end', async (req, res) => {
     try {
-        // Save workout data to database
-        const query = `
-            INSERT INTO workout_sessions (user_id, session_id, duration, calories, form_score)
-            VALUES (?, ?, ?, ?, ?)
-        `;
+        const { sessionId } = req.body;
+        const session = workoutSessions.get(sessionId);
         
-        await dbPool.execute(query, [
-            userId,
-            workoutData.sessionId,
-            workoutData.duration,
-            workoutData.calories,
-            workoutData.formScore
-        ]);
-        
-        // Stop the workout monitoring process
-        const process = workoutProcesses.get(workoutData.sessionId);
-        if (process) {
-            process.kill();
-            workoutProcesses.delete(workoutData.sessionId);
+        if (!session) {
+            return res.status(404).json({ error: 'Workout session not found' });
         }
         
-        res.json({ success: true });
+        // Kill the Python process
+        const pythonProcess = workoutProcesses.get(sessionId);
+        if (pythonProcess) {
+            pythonProcess.kill();
+            workoutProcesses.delete(sessionId);
+        }
+        
+        // Save workout data to database
+        const { userId, workoutType, data } = session;
+        const [result] = await dbPool.execute(
+            'INSERT INTO `workout_sessions` (user_id, exercise_type, reps, duration) VALUES (?, ?, ?, ?)',
+            [userId, workoutType, data.repCount || 0, data.duration || 0]
+        );
+        
+        // Clean up session data
+        workoutSessions.delete(sessionId);
+        
+        res.json({ 
+            success: true, 
+            message: 'Workout saved successfully',
+            workoutId: result.insertId
+        });
     } catch (error) {
-        console.error('Error saving workout:', error);
+        console.error('Error ending workout:', error);
         res.status(500).json({ error: 'Failed to save workout data' });
     }
 });
@@ -653,6 +696,68 @@ app.post('/api/auth/verify-session', async (req, res) => {
     } catch (error) {
         console.error('Error verifying session:', error);
         return res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Custom Workouts Endpoints
+app.post('/api/workout/save-custom', async (req, res) => {
+    const userId = req.headers['x-user-id'];
+    if (!userId) {
+        return res.status(401).json({ success: false, message: 'User not authenticated' });
+    }
+
+    const { name, description, exercises } = req.body;
+    if (!name || !exercises || !Array.isArray(exercises) || exercises.length === 0) {
+        return res.status(400).json({ success: false, message: 'Invalid workout data' });
+    }
+
+    try {
+        const connection = await dbPool.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            // Insert the workout
+            const [result] = await connection.execute(
+                'INSERT INTO custom_workouts (user_id, name, description, exercises) VALUES (?, ?, ?, ?)',
+                [userId, name, description, JSON.stringify(exercises)]
+            );
+
+            await connection.commit();
+            res.json({ success: true, workoutId: result.insertId });
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error('Error saving custom workout:', error);
+        res.status(500).json({ success: false, message: 'Failed to save workout' });
+    }
+});
+
+app.get('/api/workout/custom/:userId', async (req, res) => {
+    const userId = req.params.userId;
+    if (!userId) {
+        return res.status(400).json({ success: false, message: 'User ID is required' });
+    }
+
+    try {
+        const [workouts] = await dbPool.execute(
+            'SELECT * FROM custom_workouts WHERE user_id = ? ORDER BY created_at DESC',
+            [userId]
+        );
+
+        // Parse the exercises JSON for each workout
+        const formattedWorkouts = workouts.map(workout => ({
+            ...workout,
+            exercises: JSON.parse(workout.exercises)
+        }));
+
+        res.json(formattedWorkouts);
+    } catch (error) {
+        console.error('Error retrieving custom workouts:', error);
+        res.status(500).json({ success: false, message: 'Failed to retrieve workouts' });
     }
 });
 
