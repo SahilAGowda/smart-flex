@@ -309,48 +309,37 @@ app.get('/api/workout/templates', async (req, res) => {
     }
 });
 
-// Nutrition Tracking Endpoints
+// Food analysis endpoint
 app.post('/api/nutrition/analyze', async (req, res) => {
-    const { imageData } = req.body;
     try {
-        // Save the image data to a temporary file
-        const tempImagePath = path.join(__dirname, 'temp_food_image.jpg');
-        const base64Data = imageData.replace(/^data:image\/jpeg;base64,/, '');
-        fs.writeFileSync(tempImagePath, base64Data, 'base64');
-        
-        // Run the Python script for food analysis
-        const pythonProcess = spawn('python', ['Python/food_analysis.py', tempImagePath]);
-        
-        let analysisResult = '';
-        
-        pythonProcess.stdout.on('data', (data) => {
-            analysisResult += data.toString();
+        const { imageData } = req.body;
+        if (!imageData) {
+            return res.status(400).json({ error: 'No image data provided' });
+        }
+
+        // Convert base64 to buffer
+        const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
+        const buffer = Buffer.from(base64Data, 'base64');
+
+        // Create form data for Flask server
+        const formData = new FormData();
+        formData.append('image', new Blob([buffer], { type: 'image/jpeg' }), 'food.jpg');
+
+        // Send request to Flask server
+        const response = await fetch('http://localhost:5000/analyze', {
+            method: 'POST',
+            body: formData
         });
 
-        pythonProcess.stderr.on('data', (data) => {
-            console.error(`Error: ${data}`);
-        });
-        
-        pythonProcess.on('close', (code) => {
-            // Delete the temporary file
-            fs.unlinkSync(tempImagePath);
-            
-            if (code !== 0) {
-                return res.status(500).json({ error: 'Failed to analyze food image' });
-            }
-            
-            try {
-                // Parse the JSON result from the Python script
-                const result = JSON.parse(analysisResult);
-                res.status(200).json(result);
-            } catch (err) {
-                console.error('Error parsing analysis result:', err);
-                res.status(500).json({ error: 'Failed to parse analysis result' });
-            }
-        });
-    } catch (err) {
-        console.error('Error analyzing nutrition:', err);
-        res.status(500).json({ error: 'Failed to analyze nutrition' });
+        if (!response.ok) {
+            throw new Error('Failed to analyze image');
+        }
+
+        const result = await response.json();
+        res.json(result);
+    } catch (error) {
+        console.error('Error analyzing food:', error);
+        res.status(500).json({ error: 'Failed to analyze food image' });
     }
 });
 
