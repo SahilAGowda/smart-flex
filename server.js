@@ -35,7 +35,7 @@ const proxy = httpProxy.createProxyServer({
 const dbPool = mysql.createPool({
   host: "localhost",
   user: "root",
-  password: "Yashwanth1234@", // Your MySQL password
+  password: "Sahilgowda2004@", // Your MySQL password
   database: "user_registration",
   waitForConnections: true,
   connectionLimit: 10,
